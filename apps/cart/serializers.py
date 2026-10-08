@@ -31,7 +31,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     available_quantity = serializers.IntegerField(
-        source="inventory.quantity",
+        source="inventory.available_quantity",
         read_only=True,
     )
     line_total = serializers.SerializerMethodField()
@@ -122,17 +122,17 @@ class AddCartItemSerializer(serializers.Serializer):
                 {"inventory_id": "This product is not available."}
             )
 
-        if inventory.quantity <= 0:
+        if inventory.available_quantity <= 0:
             raise serializers.ValidationError(
                 {"inventory_id": "This product is out of stock."}
             )
 
-        if quantity > inventory.quantity:
+        if quantity > inventory.available_quantity:
             raise serializers.ValidationError(
                 {
                     "quantity": (
                         "Requested quantity exceeds "
-                        f"available stock ({inventory.quantity})."
+                        f"available stock ({inventory.available_quantity})."
                     )
                 }
             )
@@ -150,7 +150,7 @@ class UpdateCartItemSerializer(serializers.Serializer):
     def validate_quantity(self, quantity):
         cart_item = self.context["cart_item"]
 
-        available_quantity = cart_item.inventory.quantity
+        available_quantity = cart_item.inventory.available_quantity
 
         if quantity > available_quantity:
             raise serializers.ValidationError(

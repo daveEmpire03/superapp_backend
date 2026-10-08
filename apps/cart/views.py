@@ -53,9 +53,22 @@ class AddCartItemView(APIView):
             raise_exception=True,
         )
 
+        # Lock inventory to recheck sellable stock after concurrent reservations.
         inventory = serializer.validated_data["inventory"]
+        inventory = type(inventory).objects.select_for_update().get(pk=inventory.pk)
 
         quantity = serializer.validated_data["quantity"]
+
+        if (
+            not inventory.is_available
+            or not inventory.store.is_active
+            or not inventory.product.is_active
+            or quantity > inventory.available_quantity
+        ):
+            return Response(
+                {"success": False, "error": {"quantity": "Insufficient available stock."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         cart = Cart.objects.select_for_update().filter(user=request.user).first()
 
@@ -102,14 +115,14 @@ class AddCartItemView(APIView):
         if cart_item:
             new_quantity = cart_item.quantity + quantity
 
-            if new_quantity > inventory.quantity:
+            if new_quantity > inventory.available_quantity:
                 return Response(
                     {
                         "success": False,
                         "error": {
                             "quantity": (
                                 "Only "
-                                f"{inventory.quantity} "
+                                f"{inventory.available_quantity} "
                                 "units are currently "
                                 "available."
                             )
@@ -183,6 +196,12 @@ class UpdateCartItemView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        # Serialize stock checks against checkout reservations and stock changes.
+        inventory = type(cart_item.inventory).objects.select_for_update().get(
+            pk=cart_item.inventory_id
+        )
+        cart_item.inventory = inventory
 
         serializer = UpdateCartItemSerializer(
             data=request.data,
