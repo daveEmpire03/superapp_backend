@@ -15,7 +15,7 @@ PRODUCTS = [[0,"0101","Golden Penny Spaghetti","Golden Penny","500g",1100],[0,"0
 
 
 class Command(BaseCommand):
-    help = "Add 60 demonstration supermarket products and optional per-store stock."
+    help = "Add 58 demonstration supermarket products and optional per-store stock."
 
     def add_arguments(self, parser):
         parser.add_argument(
