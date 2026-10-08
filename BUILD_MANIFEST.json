@@ -1,0 +1,22 @@
+{
+  "project": "Bokku Mart Backend",
+  "apps": [
+    "accounts",
+    "stores",
+    "catalog",
+    "inventory",
+    "cart",
+    "orders",
+    "payments",
+    "delivery",
+    "promotions",
+    "loyalty",
+    "notifications",
+    "reviews",
+    "support",
+    "analytics"
+  ],
+  "python_files": 126,
+  "total_files": 260,
+  "syntax_errors": []
+}

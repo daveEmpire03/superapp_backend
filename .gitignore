@@ -1,0 +1,13 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+media/
+staticfiles/
+.coverage
+.pytest_cache/
+.idea/
+.vscode/
+bokku-mart-firebase.json
