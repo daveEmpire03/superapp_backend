@@ -19,6 +19,7 @@ from .serializers import (
     DriverAvailabilitySerializer,
     DriverLocationSerializer,
     DriverRideStatusSerializer,
+    RideCancelSerializer,
     RideCreateSerializer,
     RideDriverProfileSerializer,
     RideQuoteRequestSerializer,
@@ -168,6 +169,50 @@ class RideDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         ensure_passenger(self.request.user)
         return ride_queryset().filter(passenger=self.request.user)
+
+
+class RideCancelView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        ensure_passenger(request.user)
+        serializer = RideCancelSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            ride = get_object_or_404(
+                Ride.objects.select_for_update(),
+                pk=pk,
+                passenger=request.user,
+            )
+            if ride.status not in {
+                Ride.Status.REQUESTED,
+                Ride.Status.SEARCHING,
+                Ride.Status.DRIVER_ASSIGNED,
+                Ride.Status.DRIVER_ARRIVING,
+            }:
+                raise ValidationError({"ride": "This ride can no longer be cancelled."})
+            if ride.payment_status == Ride.PaymentStatus.PAID:
+                raise ValidationError({
+                    "payment": "This ride has a successful online payment and requires the refund workflow before cancellation."
+                })
+
+            ride.status = Ride.Status.CANCELLED
+            ride.cancelled_at = timezone.now()
+            ride.save(update_fields=["status", "cancelled_at", "updated_at"])
+            RideStatusHistory.objects.create(
+                ride=ride,
+                status=Ride.Status.CANCELLED,
+                changed_by=request.user,
+                note=serializer.validated_data.get("reason", "") or "Cancelled by passenger.",
+            )
+
+        ride = ride_queryset().get(pk=ride.pk)
+        return Response({
+            "success": True,
+            "message": "Ride cancelled.",
+            "data": RideSerializer(ride, context={"request": request}).data,
+        })
 
 
 class DriverProfileView(APIView):
