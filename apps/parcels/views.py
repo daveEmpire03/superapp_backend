@@ -42,6 +42,15 @@ ACTIVE_PARCEL_STATUSES = (
 )
 
 
+def notify_after_commit(*, user, title, message, notification_type, data):
+    from apps.notifications.services import create_notification
+
+    transaction.on_commit(lambda: create_notification(
+        user=user, title=title, message=message,
+        notification_type=notification_type, data=data,
+    ))
+
+
 def ensure_customer(user):
     if user.role != User.Role.CUSTOMER:
         raise PermissionDenied("Only customer accounts can create parcel shipments.")
@@ -189,6 +198,14 @@ class ParcelCancelView(APIView):
             parcel.cancelled_at = timezone.now()
             parcel.save(update_fields=["status", "cancelled_at", "updated_at"])
             record_history(parcel, ParcelShipment.Status.CANCELLED, request.user, serializer.validated_data.get("reason", "") or "Cancelled by sender.")
+            if parcel.driver_id:
+                from apps.notifications.models import Notification
+                notify_after_commit(
+                    user=parcel.driver, title="Parcel cancelled",
+                    message="The sender cancelled the parcel before pickup.",
+                    notification_type=Notification.Type.DELIVERY,
+                    data={"service": "PARCEL", "parcel_id": str(parcel.pk), "status": parcel.status},
+                )
         parcel = parcel_queryset().get(pk=parcel.pk)
         return Response({"success": True, "data": ParcelShipmentSerializer(parcel).data})
 
@@ -278,6 +295,13 @@ class ParcelDriverAcceptView(APIView):
             profile.is_available = False
             profile.save(update_fields=["is_available", "updated_at"])
             record_history(parcel, ParcelShipment.Status.DRIVER_ASSIGNED, request.user, "Driver accepted parcel.")
+            from apps.notifications.models import Notification
+            notify_after_commit(
+                user=parcel.sender, title="Courier assigned",
+                message="A courier has accepted your parcel shipment.",
+                notification_type=Notification.Type.DELIVERY,
+                data={"service": "PARCEL", "parcel_id": str(parcel.pk), "status": parcel.status},
+            )
         parcel = parcel_queryset().get(pk=parcel.pk)
         return Response({"success": True, "data": ParcelShipmentSerializer(parcel).data})
 
@@ -314,5 +338,12 @@ class ParcelDriverStatusView(APIView):
                 raise ValidationError({"status": f"Invalid parcel transition from {parcel.status} to {data['status']}."})
             parcel.save(update_fields=update_fields)
             record_history(parcel, parcel.status, request.user, data.get("proof_note", "") or f"Parcel status updated to {parcel.status}.")
+            from apps.notifications.models import Notification
+            notify_after_commit(
+                user=parcel.sender, title="Parcel status updated",
+                message=f"Your parcel is now {parcel.status.replace(chr(95), chr(32)).lower()}.",
+                notification_type=Notification.Type.DELIVERY,
+                data={"service": "PARCEL", "parcel_id": str(parcel.pk), "status": parcel.status},
+            )
         parcel = parcel_queryset().get(pk=parcel.pk)
         return Response({"success": True, "data": ParcelShipmentSerializer(parcel).data})
