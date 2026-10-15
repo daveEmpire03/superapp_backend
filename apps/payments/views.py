@@ -4,6 +4,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -241,7 +242,7 @@ class FlutterwaveWebhookView(APIView):
             except PaymentServiceError:
                 payment, verified = verify_service_transaction(str(transaction_id))
 
-        except PaymentServiceError:
+        except (PaymentServiceError, ValidationError):
             # A valid Flutterwave webhook reached us,
             # but provider verification/finalization
             # could not currently complete.
