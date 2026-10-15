@@ -9,8 +9,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from math import asin, cos, radians, sin, sqrt
 import os
 
-from django.conf import settings
-
 
 EARTH_RADIUS_KM = 6371.0088
 
