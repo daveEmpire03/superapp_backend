@@ -156,7 +156,7 @@ class RideSerializer(serializers.ModelSerializer):
             return None
         try:
             profile = obj.driver.ride_driver_profile
-        except Exception:
+        except RideDriverProfile.DoesNotExist:
             return None
         if (
             profile.current_latitude is None
