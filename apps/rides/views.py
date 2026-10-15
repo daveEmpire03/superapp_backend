@@ -396,7 +396,7 @@ class AvailableRideListView(APIView):
         if not profile.is_available:
             raise ValidationError({"is_available": "Go available to view nearby ride requests."})
         require_fresh_driver_location(profile)
-        if has_active_ride(request.user):
+        if has_active_work(request.user):
             raise ValidationError({"ride": "Complete your active ride before viewing new requests."})
 
         latitude = float(profile.current_latitude)
@@ -453,7 +453,7 @@ class AcceptRideView(APIView):
             if not profile.is_available:
                 raise ValidationError({"is_available": "You must be available to accept a ride."})
             require_fresh_driver_location(profile)
-            if has_active_ride(request.user):
+            if has_active_work(request.user):
                 raise ValidationError({"ride": "You already have an active ride."})
             if ride.status not in ACCEPTABLE_RIDE_STATUSES or ride.driver_id is not None:
                 raise ValidationError({"ride": "This ride is no longer available."})
