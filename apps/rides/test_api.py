@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.rides.models import Ride, RideStatusHistory
@@ -38,7 +38,6 @@ class PassengerRideApiTests(TestCase):
             "passenger_note": "I will be at the gate.",
         }
 
-    @override_settings()
     def test_quote_is_server_calculated_and_does_not_create_a_ride(self):
         response = self.client.post(
             "/api/v1/rides/quote/",
