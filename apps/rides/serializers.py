@@ -3,7 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from .models import Ride, RideStatusHistory
-from .pricing import quote_for_location_data
+from .pricing import haversine_distance_km
 
 
 class RideLocationInputSerializer(serializers.Serializer):
@@ -48,8 +48,13 @@ class RideLocationInputSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
-        distance_km = quote_for_location_data(attrs)["estimated_distance_km"]
-        if distance_km < Decimal("0.05"):
+        straight_line_distance_km = haversine_distance_km(
+            attrs["pickup_latitude"],
+            attrs["pickup_longitude"],
+            attrs["destination_latitude"],
+            attrs["destination_longitude"],
+        )
+        if Decimal(str(straight_line_distance_km)) < Decimal("0.05"):
             raise serializers.ValidationError(
                 {"destination": "Pickup and destination must be at least 50 metres apart."}
             )
