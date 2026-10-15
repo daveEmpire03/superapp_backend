@@ -93,3 +93,20 @@ class ParcelApiTests(TestCase):
         parcel.refresh_from_db()
         self.assertEqual(parcel.status, ParcelShipment.Status.DELIVERED)
         self.assertNotIn(code, parcel.delivery_code_hash)
+
+    def test_unpaid_online_parcel_is_not_dispatchable(self):
+        self.client.force_authenticate(self.sender)
+        created = self.client.post(
+            "/api/v1/parcels/",
+            {**self.payload, "payment_method": "ONLINE"},
+            format="json",
+        )
+        self.assertEqual(created.status_code, 201)
+        parcel_id = created.data["data"]["id"]
+        self.client.force_authenticate(self.driver)
+        available = self.client.get("/api/v1/parcels/driver/available/")
+        self.assertEqual(available.status_code, 200)
+        ids = {item["parcel"]["id"] for item in available.data["data"]}
+        self.assertNotIn(parcel_id, ids)
+        accepted = self.client.post("/api/v1/parcels/%s/accept/" % parcel_id, {}, format="json")
+        self.assertEqual(accepted.status_code, 400)
