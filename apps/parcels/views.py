@@ -193,6 +193,18 @@ class ParcelCancelView(APIView):
         return Response({"success": True, "data": ParcelShipmentSerializer(parcel).data})
 
 
+class ParcelDriverMineView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ParcelShipmentSerializer
+
+    def get_queryset(self):
+        ensure_driver(self.request.user)
+        return parcel_queryset().filter(
+            driver=self.request.user,
+            status__in=ACTIVE_PARCEL_STATUSES,
+        )
+
+
 class ParcelDriverAvailableView(APIView):
     permission_classes = [IsAuthenticated]
 
