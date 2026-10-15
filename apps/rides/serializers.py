@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from .models import Ride, RideStatusHistory
@@ -47,9 +49,7 @@ class RideLocationInputSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         distance_km = quote_for_location_data(attrs)["estimated_distance_km"]
-        if distance_km < serializers.DecimalField(
-            max_digits=5, decimal_places=2
-        ).to_internal_value("0.05"):
+        if distance_km < Decimal("0.05"):
             raise serializers.ValidationError(
                 {"destination": "Pickup and destination must be at least 50 metres apart."}
             )
