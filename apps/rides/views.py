@@ -51,6 +51,40 @@ def notify_after_commit(*, user, title, message, notification_type, data):
     ))
 
 
+def notify_nearby_drivers_for_ride(ride):
+    from .pricing import haversine_distance_km
+    from apps.notifications.models import Notification
+
+    latitude = float(ride.pickup_latitude)
+    longitude = float(ride.pickup_longitude)
+    latitude_delta = DRIVER_SEARCH_RADIUS_KM / 110.574
+    longitude_delta = DRIVER_SEARCH_RADIUS_KM / max(111.320 * abs(cos(radians(latitude))), 11.132)
+    profiles = RideDriverProfile.objects.select_related("user").filter(
+        vehicle_type=ride.vehicle_type,
+        is_approved=True,
+        is_suspended=False,
+        is_available=True,
+        last_location_at__gte=timezone.now() - DRIVER_LOCATION_MAX_AGE,
+        current_latitude__gte=Decimal(str(latitude - latitude_delta)),
+        current_latitude__lte=Decimal(str(latitude + latitude_delta)),
+        current_longitude__gte=Decimal(str(longitude - longitude_delta)),
+        current_longitude__lte=Decimal(str(longitude + longitude_delta)),
+    )
+    for profile in profiles:
+        distance = haversine_distance_km(
+            profile.current_latitude, profile.current_longitude,
+            ride.pickup_latitude, ride.pickup_longitude,
+        )
+        if distance <= DRIVER_SEARCH_RADIUS_KM:
+            notify_after_commit(
+                user=profile.user,
+                title="New nearby ride request",
+                message=f"A {ride.vehicle_type.lower()} ride is available near your location.",
+                notification_type=Notification.Type.DELIVERY,
+                data={"service": "RIDE", "ride_id": str(ride.pk), "status": ride.status},
+            )
+
+
 def ensure_passenger(user):
     if user.role != User.Role.CUSTOMER:
         raise PermissionDenied("Only customer accounts can request passenger rides.")
@@ -158,6 +192,8 @@ class RideListCreateView(generics.ListCreateAPIView):
                 changed_by=request.user,
                 note="Ride requested by passenger.",
             )
+            from apps.notifications.models import Notification
+            notify_nearby_drivers_for_ride(ride)
 
         ride = ride_queryset().get(pk=ride.pk)
         return Response(
