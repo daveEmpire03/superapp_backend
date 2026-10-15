@@ -185,3 +185,12 @@ class DriverLocationSerializer(serializers.Serializer):
 
 class DriverAvailabilitySerializer(serializers.Serializer):
     is_available = serializers.BooleanField()
+
+class DriverRideStatusSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        choices=(
+            (Ride.Status.DRIVER_ARRIVING, Ride.Status.DRIVER_ARRIVING),
+            (Ride.Status.IN_PROGRESS, Ride.Status.IN_PROGRESS),
+            (Ride.Status.COMPLETED, Ride.Status.COMPLETED),
+        )
+    )
