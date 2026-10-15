@@ -237,9 +237,9 @@ class RideCancelView(APIView):
                 Ride.Status.DRIVER_ARRIVING,
             }:
                 raise ValidationError({"ride": "This ride can no longer be cancelled."})
-            if ride.payment_status == Ride.PaymentStatus.PAID:
+            if ride.payment_status in {Ride.PaymentStatus.PAID, Ride.PaymentStatus.PENDING}:
                 raise ValidationError({
-                    "payment": "This ride has a successful online payment and requires the refund workflow before cancellation."
+                    "payment": "This ride has an online payment that requires reconciliation/refund handling before cancellation."
                 })
 
             ride.status = Ride.Status.CANCELLED
