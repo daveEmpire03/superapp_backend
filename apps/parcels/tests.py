@@ -110,3 +110,22 @@ class ParcelApiTests(TestCase):
         self.assertNotIn(parcel_id, ids)
         accepted = self.client.post("/api/v1/parcels/%s/accept/" % parcel_id, {}, format="json")
         self.assertEqual(accepted.status_code, 400)
+
+    def test_sender_cannot_cancel_parcel_with_pending_online_payment(self):
+        response = self.client.post(
+            "/api/v1/parcels/",
+            {**self.payload, "payment_method": "ONLINE"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        parcel = ParcelShipment.objects.get()
+        parcel.payment_status = ParcelShipment.PaymentStatus.PENDING
+        parcel.save(update_fields=["payment_status"])
+        cancelled = self.client.post(
+            "/api/v1/parcels/%s/cancel/" % parcel.pk,
+            {"reason": "Changed plans"},
+            format="json",
+        )
+        self.assertEqual(cancelled.status_code, 400)
+        parcel.refresh_from_db()
+        self.assertEqual(parcel.status, ParcelShipment.Status.REQUESTED)
