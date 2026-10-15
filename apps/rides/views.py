@@ -100,7 +100,7 @@ def ensure_driver(user):
 
 def ride_queryset():
     return (
-        Ride.objects.select_related("passenger", "driver")
+        Ride.objects.select_related("passenger", "driver", "driver__ride_driver_profile")
         .prefetch_related("status_history", "status_history__changed_by")
     )
 
