@@ -189,6 +189,12 @@ def finalize_service_verification(*, payment, transaction_id, provider_response)
             notification_type=Notification.Type.PAYMENT,
             data={"service": payment.service_type, "service_id": str(service.pk), "payment_id": str(payment.pk), "status": "PAID"},
         )
+        if payment.service_type == ServicePayment.ServiceType.RIDE:
+            from apps.rides.views import notify_nearby_drivers_for_ride
+            notify_nearby_drivers_for_ride(service)
+        else:
+            from apps.parcels.views import notify_nearby_drivers_for_parcel
+            notify_nearby_drivers_for_parcel(service)
 
     payment.provider_transaction_id = str(transaction_id)
     payment.raw_response = provider_response
