@@ -198,3 +198,7 @@ class DriverRideStatusSerializer(serializers.Serializer):
             (Ride.Status.COMPLETED, Ride.Status.COMPLETED),
         )
     )
+
+
+class RideCancelSerializer(serializers.Serializer):
+    reason = serializers.CharField(required=False, allow_blank=True, max_length=255, trim_whitespace=True)
