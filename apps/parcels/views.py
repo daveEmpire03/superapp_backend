@@ -228,8 +228,8 @@ class ParcelCancelView(APIView):
                 raise ValidationError({"parcel": "A parcel cannot be cancelled after pickup."})
             if parcel.status == ParcelShipment.Status.CANCELLED:
                 return Response({"success": True, "data": ParcelShipmentSerializer(parcel).data})
-            if parcel.payment_status == ParcelShipment.PaymentStatus.PAID:
-                raise ValidationError({"payment": "A paid parcel requires the refund workflow before cancellation."})
+            if parcel.payment_status in {ParcelShipment.PaymentStatus.PAID, ParcelShipment.PaymentStatus.PENDING}:
+                raise ValidationError({"payment": "A parcel with an online payment requires reconciliation/refund handling before cancellation."})
             parcel.status = ParcelShipment.Status.CANCELLED
             parcel.cancelled_at = timezone.now()
             parcel.save(update_fields=["status", "cancelled_at", "updated_at"])
