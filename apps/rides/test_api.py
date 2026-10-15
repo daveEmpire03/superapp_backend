@@ -127,3 +127,22 @@ class PassengerRideApiTests(TestCase):
         self.client.force_authenticate(user=None)
         response = self.client.post("/api/v1/rides/", self.payload, format="json")
         self.assertEqual(response.status_code, 401)
+
+    def test_passenger_cannot_cancel_ride_with_pending_online_payment(self):
+        response = self.client.post(
+            "/api/v1/rides/",
+            {**self.payload, "payment_method": "ONLINE"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        ride = Ride.objects.get()
+        ride.payment_status = Ride.PaymentStatus.PENDING
+        ride.save(update_fields=["payment_status"])
+        cancelled = self.client.post(
+            "/api/v1/rides/%s/cancel/" % ride.pk,
+            {"reason": "Changed plans"},
+            format="json",
+        )
+        self.assertEqual(cancelled.status_code, 400)
+        ride.refresh_from_db()
+        self.assertEqual(ride.status, Ride.Status.REQUESTED)
