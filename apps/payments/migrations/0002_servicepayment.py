@@ -35,8 +35,10 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="servicepayment",
             constraint=models.CheckConstraint(
-                condition=models.Q(("service_type", "RIDE"), ("ride__isnull", False), ("parcel__isnull", True))
-                | models.Q(("service_type", "PARCEL"), ("parcel__isnull", False), ("ride__isnull", True)),
+                condition=(
+                    models.Q(service_type="RIDE", ride__isnull=False, parcel__isnull=True)
+                    | models.Q(service_type="PARCEL", parcel__isnull=False, ride__isnull=True)
+                ),
                 name="service_payment_one_target",
             ),
         ),
