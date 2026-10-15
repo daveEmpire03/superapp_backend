@@ -70,6 +70,8 @@ LOCAL_APPS = [
     "apps.orders",
     "apps.payments",
     "apps.delivery",
+    "apps.rides",
+    "apps.parcels",
     "apps.promotions",
     "apps.loyalty",
     "apps.notifications",
@@ -331,6 +333,10 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(
             minute="*",
         ),
+    },
+    "expire-stale-mobility-requests": {
+        "task": "apps.rides.tasks.expire_unassigned_mobility_requests",
+        "schedule": 60.0,
     },
 }
 
