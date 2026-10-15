@@ -215,6 +215,22 @@ class RideCancelView(APIView):
         })
 
 
+class DriverRideListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RideSerializer
+
+    def get_queryset(self):
+        ensure_driver(self.request.user)
+        return ride_queryset().filter(
+            driver=self.request.user,
+            status__in=(
+                Ride.Status.DRIVER_ASSIGNED,
+                Ride.Status.DRIVER_ARRIVING,
+                Ride.Status.IN_PROGRESS,
+            ),
+        )
+
+
 class DriverProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
