@@ -1,4 +1,7 @@
+from datetime import timedelta
 from decimal import Decimal
+
+from django.utils import timezone
 
 from rest_framework import serializers
 
@@ -52,6 +55,7 @@ class ParcelShipmentSerializer(serializers.ModelSerializer):
     status_history = ParcelStatusHistorySerializer(many=True, read_only=True)
     sender_name = serializers.SerializerMethodField()
     driver_name = serializers.SerializerMethodField()
+    driver_location = serializers.SerializerMethodField()
 
     class Meta:
         model = ParcelShipment
@@ -61,7 +65,7 @@ class ParcelShipmentSerializer(serializers.ModelSerializer):
             "destination_address", "destination_latitude", "destination_longitude",
             "estimated_distance_km", "quoted_fare", "currency", "status",
             "payment_method", "payment_status", "sender_name", "driver", "driver_name",
-            "requested_at", "assigned_at", "picked_up_at", "in_transit_at", "delivered_at",
+            "driver_location", "requested_at", "assigned_at", "picked_up_at", "in_transit_at", "delivered_at",
             "cancelled_at", "proof_note", "status_history", "created_at", "updated_at",
         )
         read_only_fields = fields
@@ -73,6 +77,26 @@ class ParcelShipmentSerializer(serializers.ModelSerializer):
         if obj.driver is None:
             return None
         return obj.driver.get_full_name().strip() or obj.driver.email
+
+    def get_driver_location(self, obj):
+        if obj.driver_id is None:
+            return None
+        try:
+            profile = obj.driver.ride_driver_profile
+        except Exception:
+            return None
+        if (
+            profile.current_latitude is None
+            or profile.current_longitude is None
+            or profile.last_location_at is None
+            or profile.last_location_at < timezone.now() - timedelta(minutes=5)
+        ):
+            return None
+        return {
+            "latitude": profile.current_latitude,
+            "longitude": profile.current_longitude,
+            "updated_at": profile.last_location_at,
+        }
 
 
 class ParcelDriverStatusSerializer(serializers.Serializer):
