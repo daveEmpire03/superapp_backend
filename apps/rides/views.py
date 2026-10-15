@@ -119,11 +119,22 @@ def require_fresh_driver_location(profile):
         )
 
 
-def has_active_ride(driver):
-    return Ride.objects.filter(
+def has_active_work(driver):
+    from apps.parcels.models import ParcelShipment
+
+    active_ride = Ride.objects.filter(
         driver=driver,
         status__in=ACTIVE_DRIVER_RIDE_STATUSES,
     ).exists()
+    active_parcel = ParcelShipment.objects.filter(
+        driver=driver,
+        status__in=(
+            ParcelShipment.Status.DRIVER_ASSIGNED,
+            ParcelShipment.Status.PICKED_UP,
+            ParcelShipment.Status.IN_TRANSIT,
+        ),
+    ).exists()
+    return active_ride or active_parcel
 
 
 class RideQuoteView(APIView):
@@ -360,7 +371,7 @@ class DriverAvailabilityView(APIView):
                 if profile.is_suspended or not profile.is_approved:
                     raise PermissionDenied("Driver approval is required before going available.")
                 require_fresh_driver_location(profile)
-                if has_active_ride(request.user):
+                if has_active_work(request.user):
                     raise ValidationError(
                         {"is_available": "Complete your active ride before accepting another ride."}
                     )
