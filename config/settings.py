@@ -334,6 +334,10 @@ CELERY_BEAT_SCHEDULE = {
             minute="*",
         ),
     },
+    "expire-stale-mobility-requests": {
+        "task": "apps.rides.tasks.expire_unassigned_mobility_requests",
+        "schedule": 60.0,
+    },
 }
 
 
