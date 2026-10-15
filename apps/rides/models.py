@@ -150,6 +150,8 @@ class RideDriverProfile(TimeStampedModel):
     vehicle_make = models.CharField(max_length=80, blank=True)
     vehicle_color = models.CharField(max_length=40, blank=True)
     is_available = models.BooleanField(default=False, db_index=True)
+    is_approved = models.BooleanField(default=False, db_index=True)
+    is_suspended = models.BooleanField(default=False, db_index=True)
     current_latitude = models.DecimalField(
         max_digits=10,
         decimal_places=7,
