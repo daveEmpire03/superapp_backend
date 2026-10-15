@@ -2,6 +2,7 @@ import secrets
 from datetime import timedelta
 from decimal import Decimal
 from math import cos, radians
+import os
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
@@ -16,8 +17,8 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.rides.models import Ride, RideDriverProfile
 from apps.rides.pricing import haversine_distance_km
-DRIVER_LOCATION_MAX_AGE = timedelta(minutes=5)
-DRIVER_SEARCH_RADIUS_KM = 10.0
+DRIVER_LOCATION_MAX_AGE = timedelta(seconds=int(os.getenv("DRIVER_LOCATION_MAX_AGE_SECONDS", "300")))
+DRIVER_SEARCH_RADIUS_KM = float(os.getenv("DRIVER_SEARCH_RADIUS_KM", "10"))
 
 from .models import ParcelShipment, ParcelStatusHistory
 from .pricing import quote_parcel
