@@ -283,6 +283,8 @@ class ParcelDriverAvailableView(APIView):
         )
         matches = []
         for parcel in candidates:
+            if parcel.payment_method == ParcelShipment.PaymentMethod.ONLINE and parcel.payment_status != ParcelShipment.PaymentStatus.PAID:
+                continue
             if profile.vehicle_type == "MOTORCYCLE" and parcel.package_size == ParcelShipment.PackageSize.LARGE:
                 continue
             distance = haversine_distance_km(
@@ -316,6 +318,8 @@ class ParcelDriverAcceptView(APIView):
                 raise ValidationError({"work": "You already have an active assignment."})
             if parcel.status != ParcelShipment.Status.REQUESTED or parcel.driver_id:
                 raise ValidationError({"parcel": "This parcel is no longer available."})
+            if parcel.payment_method == ParcelShipment.PaymentMethod.ONLINE and parcel.payment_status != ParcelShipment.PaymentStatus.PAID:
+                raise ValidationError({"payment": "Online payment must be verified before a courier can accept this parcel."})
             if profile.vehicle_type == "MOTORCYCLE" and parcel.package_size == ParcelShipment.PackageSize.LARGE:
                 raise ValidationError({"package_size": "This parcel requires a car."})
             distance = haversine_distance_km(
