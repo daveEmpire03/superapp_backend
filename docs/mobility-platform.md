@@ -83,7 +83,7 @@ These quotes currently use straight-line distance multiplied by a configurable f
 3. An admin approves or suspends the profile in Django Admin → Ride driver profiles.
 4. Configure Flutterwave credentials and a real `PAYMENT_REDIRECT_URL` for the customer Flutter app.
 5. Configure Firebase credentials/device tokens for push delivery.
-6. Run migrations and the complete backend test suite before deployment.
+6. Run migrations and both the existing suite and the ride-domain modules before deployment: `python manage.py test --verbosity 2` and `python manage.py test apps.rides.tests apps.rides.test_api apps.rides.test_dispatch apps.rides.test_tasks --verbosity 2`.
 7. Test cancellation/refund policy, poor connectivity, stale GPS, simultaneous driver acceptance, and provider webhook retries.
 8. Deploy the driver app only after Android/iOS location permission descriptions, signing, privacy policy, and physical-device tests are complete.
 
