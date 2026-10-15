@@ -156,12 +156,16 @@ class RideDriverProfileSerializer(serializers.ModelSerializer):
             "vehicle_make",
             "vehicle_color",
             "is_available",
+            "is_approved",
+            "is_suspended",
             "current_latitude",
             "current_longitude",
             "last_location_at",
         )
         read_only_fields = (
             "is_available",
+            "is_approved",
+            "is_suspended",
             "current_latitude",
             "current_longitude",
             "last_location_at",
