@@ -98,7 +98,7 @@ def ensure_driver(user):
 
 def parcel_queryset():
     return (
-        ParcelShipment.objects.select_related("sender", "driver")
+        ParcelShipment.objects.select_related("sender", "driver", "driver__ride_driver_profile")
         .prefetch_related("status_history", "status_history__changed_by")
     )
 
