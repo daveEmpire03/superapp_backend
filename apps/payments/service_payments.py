@@ -169,7 +169,8 @@ def finalize_service_verification(*, payment, transaction_id, provider_response)
         payment.ride_id if payment.service_type == ServicePayment.ServiceType.RIDE else payment.parcel_id,
         lock=True,
     )
-    if service.payment_status == status_choices.PAID:
+    already_paid = service.payment_status == status_choices.PAID
+    if already_paid:
         payment.status = ServicePayment.Status.SUCCESS
     else:
         if service.status in {
@@ -179,6 +180,15 @@ def finalize_service_verification(*, payment, transaction_id, provider_response)
         service.payment_status = status_choices.PAID
         service.save(update_fields=["payment_status", "updated_at"])
         payment.status = ServicePayment.Status.SUCCESS
+        from apps.notifications.models import Notification
+        from apps.notifications.services import create_notification
+        create_notification(
+            user=payment.user,
+            title="Payment successful",
+            message=f"Your {payment.service_type.lower()} payment was verified.",
+            notification_type=Notification.Type.PAYMENT,
+            data={"service": payment.service_type, "service_id": str(service.pk), "payment_id": str(payment.pk), "status": "PAID"},
+        )
 
     payment.provider_transaction_id = str(transaction_id)
     payment.raw_response = provider_response
