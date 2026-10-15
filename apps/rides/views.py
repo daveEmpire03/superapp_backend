@@ -42,6 +42,15 @@ DRIVER_TRANSITIONS = {
 }
 
 
+def notify_after_commit(*, user, title, message, notification_type, data):
+    from apps.notifications.services import create_notification
+
+    transaction.on_commit(lambda: create_notification(
+        user=user, title=title, message=message,
+        notification_type=notification_type, data=data,
+    ))
+
+
 def ensure_passenger(user):
     if user.role != User.Role.CUSTOMER:
         raise PermissionDenied("Only customer accounts can request passenger rides.")
@@ -206,6 +215,14 @@ class RideCancelView(APIView):
                 changed_by=request.user,
                 note=serializer.validated_data.get("reason", "") or "Cancelled by passenger.",
             )
+            if ride.driver_id:
+                from apps.notifications.models import Notification
+                notify_after_commit(
+                    user=ride.driver, title="Ride cancelled",
+                    message="The passenger cancelled the assigned ride.",
+                    notification_type=Notification.Type.DELIVERY,
+                    data={"service": "RIDE", "ride_id": str(ride.pk), "status": ride.status},
+                )
 
         ride = ride_queryset().get(pk=ride.pk)
         return Response({
@@ -413,6 +430,13 @@ class AcceptRideView(APIView):
                 changed_by=request.user,
                 note="Driver accepted ride request.",
             )
+            from apps.notifications.models import Notification
+            notify_after_commit(
+                user=ride.passenger, title="Driver assigned",
+                message="A driver has accepted your Bokku ride.",
+                notification_type=Notification.Type.DELIVERY,
+                data={"service": "RIDE", "ride_id": str(ride.pk), "status": ride.status},
+            )
 
         ride = ride_queryset().get(pk=ride.pk)
         return Response({
@@ -456,6 +480,13 @@ class DriverRideStatusView(APIView):
                 status=requested_status,
                 changed_by=request.user,
                 note=f"Driver changed ride status to {requested_status}.",
+            )
+            from apps.notifications.models import Notification
+            notify_after_commit(
+                user=ride.passenger, title="Ride status updated",
+                message=f"Your ride is now {requested_status.replace(chr(95), chr(32)).lower()}.",
+                notification_type=Notification.Type.DELIVERY,
+                data={"service": "RIDE", "ride_id": str(ride.pk), "status": ride.status},
             )
 
         ride = ride_queryset().get(pk=ride.pk)
