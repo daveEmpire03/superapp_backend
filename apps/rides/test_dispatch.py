@@ -1,9 +1,11 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from rest_framework.test import APIClient, APITestCase
 
+from apps.parcels.models import ParcelShipment
 from apps.rides.models import Ride, RideDriverProfile
 
 
@@ -228,3 +230,28 @@ class DriverDispatchApiTests(APITestCase):
         self.assertNotIn(str(self.ride.pk), ids)
         accepted = self.client.post("/api/v1/rides/%s/accept/" % self.ride.pk, {}, format="json")
         self.assertEqual(accepted.status_code, 400)
+
+    def test_driver_cannot_accept_ride_while_a_parcel_is_in_progress(self):
+        ParcelShipment.objects.create(
+            sender=self.passenger,
+            driver=self.driver,
+            package_size=ParcelShipment.PackageSize.SMALL,
+            package_description="Documents",
+            recipient_name="Ada",
+            recipient_phone="08000000000",
+            pickup_address="Agodi, Ibadan",
+            pickup_latitude=Decimal("7.4000000"),
+            pickup_longitude=Decimal("3.9000000"),
+            destination_address="Bodija, Ibadan",
+            destination_latitude=Decimal("7.4300000"),
+            destination_longitude=Decimal("3.9200000"),
+            estimated_distance_km=Decimal("4.00"),
+            quoted_fare=Decimal("900.00"),
+            status=ParcelShipment.Status.IN_TRANSIT,
+            payment_method=ParcelShipment.PaymentMethod.CASH,
+            delivery_code_hash=make_password("123456"),
+        )
+        response = self.client.post("/api/v1/rides/%s/accept/" % self.ride.pk, {}, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.ride.refresh_from_db()
+        self.assertIsNone(self.ride.driver)
