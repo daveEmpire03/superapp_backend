@@ -3,10 +3,9 @@ from decimal import Decimal
 from math import cos, radians
 
 from django.db import transaction
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework import generics, serializers, status
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -19,6 +18,7 @@ from .pricing import haversine_distance_km, quote_for_location_data
 from .serializers import (
     DriverAvailabilitySerializer,
     DriverLocationSerializer,
+    DriverRideStatusSerializer,
     RideCreateSerializer,
     RideDriverProfileSerializer,
     RideQuoteRequestSerializer,
@@ -241,6 +241,8 @@ class DriverAvailabilityView(APIView):
                 RideDriverProfile.objects.select_for_update(), user=request.user
             )
             if desired_availability:
+                if profile.is_suspended or not profile.is_approved:
+                    raise PermissionDenied("Driver approval is required before going available.")
                 require_fresh_driver_location(profile)
                 if has_active_ride(request.user):
                     raise ValidationError(
@@ -262,9 +264,13 @@ class AvailableRideListView(APIView):
     def get(self, request):
         ensure_driver(request.user)
         profile = get_object_or_404(RideDriverProfile, user=request.user)
+        if profile.is_suspended or not profile.is_approved:
+            raise PermissionDenied("Your driver profile is not approved for dispatch.")
         if not profile.is_available:
             raise ValidationError({"is_available": "Go available to view nearby ride requests."})
         require_fresh_driver_location(profile)
+        if has_active_ride(request.user):
+            raise ValidationError({"ride": "Complete your active ride before viewing new requests."})
 
         latitude = float(profile.current_latitude)
         longitude = float(profile.current_longitude)
@@ -313,6 +319,8 @@ class AcceptRideView(APIView):
             )
             ride = get_object_or_404(Ride.objects.select_for_update(), pk=pk)
 
+            if profile.is_suspended or not profile.is_approved:
+                raise PermissionDenied("Your driver profile is not approved for dispatch.")
             if not profile.is_available:
                 raise ValidationError({"is_available": "You must be available to accept a ride."})
             require_fresh_driver_location(profile)
@@ -358,12 +366,9 @@ class DriverRideStatusView(APIView):
 
     def post(self, request, pk):
         ensure_driver(request.user)
-        requested_status = request.data.get("status")
-        allowed_statuses = set(DRIVER_TRANSITIONS.values())
-        if requested_status not in allowed_statuses:
-            raise ValidationError({
-                "status": "Use DRIVER_ARRIVING, IN_PROGRESS, or COMPLETED as allowed by the ride lifecycle."
-            })
+        input_serializer = DriverRideStatusSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        requested_status = input_serializer.validated_data["status"]
 
         with transaction.atomic():
             ride = get_object_or_404(
