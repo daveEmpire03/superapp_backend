@@ -146,7 +146,7 @@ class RideDriverProfile(TimeStampedModel):
         limit_choices_to={"role": "RIDER"},
     )
     vehicle_type = models.CharField(max_length=16, choices=Ride.VehicleType.choices)
-    vehicle_plate = models.CharField(max_length=20)
+    vehicle_plate = models.CharField(max_length=20, unique=True)
     vehicle_make = models.CharField(max_length=80, blank=True)
     vehicle_color = models.CharField(max_length=40, blank=True)
     is_available = models.BooleanField(default=False, db_index=True)
