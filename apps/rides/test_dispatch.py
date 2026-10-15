@@ -37,6 +37,7 @@ class DriverDispatchApiTests(APITestCase):
             vehicle_type=Ride.VehicleType.CAR,
             vehicle_plate="ABC-123-XY",
             is_available=True,
+            is_approved=True,
             current_latitude=Decimal("7.4000000"),
             current_longitude=Decimal("3.9000000"),
             last_location_at=timezone.now(),
