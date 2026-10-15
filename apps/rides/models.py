@@ -134,3 +134,45 @@ class RideStatusHistory(TimeStampedModel):
 
     def __str__(self):
         return f"{self.ride_id} - {self.status}"
+
+
+class RideDriverProfile(TimeStampedModel):
+    """Dispatch-specific vehicle and live availability data for a rider account."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ride_driver_profile",
+        limit_choices_to={"role": "RIDER"},
+    )
+    vehicle_type = models.CharField(max_length=16, choices=Ride.VehicleType.choices)
+    vehicle_plate = models.CharField(max_length=20)
+    vehicle_make = models.CharField(max_length=80, blank=True)
+    vehicle_color = models.CharField(max_length=40, blank=True)
+    is_available = models.BooleanField(default=False, db_index=True)
+    current_latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+    )
+    current_longitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+    )
+    last_location_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["vehicle_type", "is_available"],
+                name="ride_driver_vehicle_avail_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} - {self.vehicle_type} ({self.vehicle_plate})"
