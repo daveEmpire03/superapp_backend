@@ -15,7 +15,9 @@ from apps.orders.models import Order
 
 from .serializers import (
     InitializePaymentSerializer,
+    InitializeServicePaymentSerializer,
     VerifyPaymentSerializer,
+    VerifyServicePaymentSerializer,
 )
 from .services import (
     PaymentServiceError,
@@ -23,6 +25,12 @@ from .services import (
     finalize_verification,
     initialize,
     verify,
+)
+from .service_payments import (
+    fetch_service_verification,
+    finalize_service_verification,
+    initialize_service_payment,
+    verify_service_transaction,
 )
 
 
@@ -137,6 +145,58 @@ class VerifyPaymentView(APIView):
         )
 
 
+class InitializeServicePaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = InitializeServicePaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            payment, data = initialize_service_payment(
+                user=request.user,
+                service_type=serializer.validated_data["service_type"],
+                service_id=serializer.validated_data["service_id"],
+                redirect_url=serializer.validated_data["redirect_url"],
+            )
+        except PaymentServiceError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+        provider_data = data.get("data") or {}
+        return Response({
+            "payment_id": str(payment.id),
+            "tx_ref": payment.tx_ref,
+            "checkout_url": provider_data.get("link"),
+            "payment_status": payment.status,
+        }, status=status.HTTP_200_OK)
+
+
+class VerifyServicePaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = VerifyServicePaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        transaction_id = serializer.validated_data["transaction_id"]
+        try:
+            payment, provider_response = fetch_service_verification(transaction_id)
+        except PaymentServiceError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+        if payment.user_id != request.user.id:
+            return Response({"detail": "You do not have permission to verify this service payment."}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            payment, verified = finalize_service_verification(
+                payment=payment,
+                transaction_id=transaction_id,
+                provider_response=provider_response,
+            )
+        except PaymentServiceError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
+        return Response({
+            "verified": verified,
+            "payment_status": payment.status,
+            "service_type": payment.service_type,
+        }, status=status.HTTP_200_OK)
+
+
 class FlutterwaveWebhookView(APIView):
     authentication_classes = []
     permission_classes = [
@@ -176,7 +236,10 @@ class FlutterwaveWebhookView(APIView):
             )
 
         try:
-            payment, verified = verify(str(transaction_id))
+            try:
+                payment, verified = verify(str(transaction_id))
+            except PaymentServiceError:
+                payment, verified = verify_service_transaction(str(transaction_id))
 
         except PaymentServiceError:
             # A valid Flutterwave webhook reached us,
