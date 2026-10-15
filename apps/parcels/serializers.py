@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from rest_framework import serializers
 
+from apps.rides.models import RideDriverProfile
 from apps.rides.pricing import haversine_distance_km
 
 from .models import ParcelShipment, ParcelStatusHistory
@@ -83,7 +84,7 @@ class ParcelShipmentSerializer(serializers.ModelSerializer):
             return None
         try:
             profile = obj.driver.ride_driver_profile
-        except Exception:
+        except RideDriverProfile.DoesNotExist:
             return None
         if (
             profile.current_latitude is None
