@@ -30,5 +30,7 @@ jobs:
         run: python manage.py check
       - name: Migration consistency
         run: python manage.py makemigrations --check
-      - name: Run test suite
+      - name: Run application test suite
         run: python manage.py test --verbosity 2
+      - name: Run ride, dispatch, and expiry tests
+        run: python manage.py test apps.rides.tests apps.rides.test_api apps.rides.test_dispatch apps.rides.test_tasks --verbosity 2
