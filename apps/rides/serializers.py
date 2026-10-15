@@ -145,3 +145,45 @@ class RideSerializer(serializers.ModelSerializer):
     def get_is_fare_estimate(self, obj):
         # The pilot quote is approximate until road routing is integrated.
         return True
+
+
+class RideDriverProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        from .models import RideDriverProfile
+
+        model = RideDriverProfile
+        fields = (
+            "vehicle_type",
+            "vehicle_plate",
+            "vehicle_make",
+            "vehicle_color",
+            "is_available",
+            "current_latitude",
+            "current_longitude",
+            "last_location_at",
+        )
+        read_only_fields = (
+            "is_available",
+            "current_latitude",
+            "current_longitude",
+            "last_location_at",
+        )
+
+    def validate_vehicle_plate(self, value):
+        value = value.strip().upper()
+        if not value:
+            raise serializers.ValidationError("Vehicle plate is required.")
+        return value
+
+
+class DriverLocationSerializer(serializers.Serializer):
+    latitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, min_value=-90, max_value=90
+    )
+    longitude = serializers.DecimalField(
+        max_digits=10, decimal_places=7, min_value=-180, max_value=180
+    )
+
+
+class DriverAvailabilitySerializer(serializers.Serializer):
+    is_available = serializers.BooleanField()
