@@ -1,4 +1,5 @@
 import secrets
+from datetime import timedelta
 from decimal import Decimal
 from math import cos, radians
 
@@ -15,7 +16,8 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.rides.models import Ride, RideDriverProfile
 from apps.rides.pricing import haversine_distance_km
-from apps.rides.views import DRIVER_LOCATION_MAX_AGE, DRIVER_SEARCH_RADIUS_KM
+DRIVER_LOCATION_MAX_AGE = timedelta(minutes=5)
+DRIVER_SEARCH_RADIUS_KM = 10.0
 
 from .models import ParcelShipment, ParcelStatusHistory
 from .pricing import quote_parcel
