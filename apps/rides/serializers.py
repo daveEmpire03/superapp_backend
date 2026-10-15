@@ -1,4 +1,7 @@
+from datetime import timedelta
 from decimal import Decimal
+
+from django.utils import timezone
 
 from rest_framework import serializers
 
@@ -94,6 +97,7 @@ class RideSerializer(serializers.ModelSerializer):
     status_history = RideStatusHistorySerializer(many=True, read_only=True)
     estimated_distance_km = serializers.SerializerMethodField()
     is_fare_estimate = serializers.SerializerMethodField()
+    driver_location = serializers.SerializerMethodField()
 
     class Meta:
         model = Ride
@@ -115,6 +119,7 @@ class RideSerializer(serializers.ModelSerializer):
             "payment_status",
             "driver",
             "driver_name",
+            "driver_location",
             "requested_at",
             "driver_assigned_at",
             "trip_started_at",
@@ -145,6 +150,26 @@ class RideSerializer(serializers.ModelSerializer):
     def get_is_fare_estimate(self, obj):
         # The pilot quote is approximate until road routing is integrated.
         return True
+
+    def get_driver_location(self, obj):
+        if obj.driver_id is None:
+            return None
+        try:
+            profile = obj.driver.ride_driver_profile
+        except Exception:
+            return None
+        if (
+            profile.current_latitude is None
+            or profile.current_longitude is None
+            or profile.last_location_at is None
+            or profile.last_location_at < timezone.now() - timedelta(minutes=5)
+        ):
+            return None
+        return {
+            "latitude": profile.current_latitude,
+            "longitude": profile.current_longitude,
+            "updated_at": profile.last_location_at,
+        }
 
 
 class RideDriverProfileSerializer(serializers.ModelSerializer):
