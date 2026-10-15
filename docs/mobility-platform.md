@@ -72,6 +72,7 @@ Add these to the deployment environment and tune against actual Ibadan operating
 - `PARCEL_PER_KM_FARE_NGN`
 - `DRIVER_SEARCH_RADIUS_KM`
 - `DRIVER_LOCATION_MAX_AGE_SECONDS`
+- `MOBILITY_REQUEST_TIMEOUT_MINUTES`
 
 These quotes currently use straight-line distance multiplied by a configurable factor. They are **estimates**, not road-route distances or guaranteed production fares. Integrate a routing provider before publishing exact distances, ETAs, or final fares.
 
