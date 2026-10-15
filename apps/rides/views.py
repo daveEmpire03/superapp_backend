@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 from math import cos, radians
+import os
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -27,8 +28,8 @@ from .serializers import (
 )
 
 
-DRIVER_LOCATION_MAX_AGE = timedelta(minutes=5)
-DRIVER_SEARCH_RADIUS_KM = 10.0
+DRIVER_LOCATION_MAX_AGE = timedelta(seconds=int(os.getenv("DRIVER_LOCATION_MAX_AGE_SECONDS", "300")))
+DRIVER_SEARCH_RADIUS_KM = float(os.getenv("DRIVER_SEARCH_RADIUS_KM", "10"))
 ACTIVE_DRIVER_RIDE_STATUSES = (
     Ride.Status.DRIVER_ASSIGNED,
     Ride.Status.DRIVER_ARRIVING,
@@ -192,7 +193,6 @@ class RideListCreateView(generics.ListCreateAPIView):
                 changed_by=request.user,
                 note="Ride requested by passenger.",
             )
-            from apps.notifications.models import Notification
             notify_nearby_drivers_for_ride(ride)
 
         ride = ride_queryset().get(pk=ride.pk)
