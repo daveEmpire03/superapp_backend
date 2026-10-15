@@ -53,6 +53,8 @@ def notify_after_commit(*, user, title, message, notification_type, data):
 
 
 def notify_nearby_drivers_for_parcel(parcel):
+    if parcel.payment_method == ParcelShipment.PaymentMethod.ONLINE and parcel.payment_status != ParcelShipment.PaymentStatus.PAID:
+        return
     from apps.notifications.models import Notification
 
     latitude = float(parcel.pickup_latitude)
