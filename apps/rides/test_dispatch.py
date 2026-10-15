@@ -217,3 +217,14 @@ class DriverDispatchApiTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_unpaid_online_ride_is_not_dispatchable(self):
+        self.ride.payment_method = Ride.PaymentMethod.ONLINE
+        self.ride.payment_status = Ride.PaymentStatus.UNPAID
+        self.ride.save(update_fields=["payment_method", "payment_status"])
+        available = self.client.get("/api/v1/rides/driver/available/")
+        self.assertEqual(available.status_code, 200)
+        ids = {item["ride"]["id"] for item in available.data["data"]}
+        self.assertNotIn(str(self.ride.pk), ids)
+        accepted = self.client.post("/api/v1/rides/%s/accept/" % self.ride.pk, {}, format="json")
+        self.assertEqual(accepted.status_code, 400)
