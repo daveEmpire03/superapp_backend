@@ -7,6 +7,7 @@ from .views import (
     ParcelQuoteView,
     ParcelDriverAcceptView,
     ParcelDriverAvailableView,
+    ParcelDriverMineView,
     ParcelDriverStatusView,
 )
 
@@ -14,6 +15,7 @@ from .views import (
 urlpatterns = [
     path("quote/", ParcelQuoteView.as_view(), name="parcel-quote"),
     path("driver/available/", ParcelDriverAvailableView.as_view(), name="parcel-driver-available"),
+    path("driver/mine/", ParcelDriverMineView.as_view(), name="parcel-driver-mine"),
     path("<uuid:pk>/accept/", ParcelDriverAcceptView.as_view(), name="parcel-driver-accept"),
     path("<uuid:pk>/status/", ParcelDriverStatusView.as_view(), name="parcel-driver-status"),
     path("<uuid:pk>/cancel/", ParcelCancelView.as_view(), name="parcel-cancel"),
