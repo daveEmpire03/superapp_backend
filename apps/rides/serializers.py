@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .models import Ride, RideStatusHistory
+from .models import Ride, RideDriverProfile, RideStatusHistory
 from .pricing import haversine_distance_km
 
 
@@ -149,8 +149,6 @@ class RideSerializer(serializers.ModelSerializer):
 
 class RideDriverProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        from .models import RideDriverProfile
-
         model = RideDriverProfile
         fields = (
             "vehicle_type",
