@@ -402,6 +402,8 @@ class AvailableRideListView(APIView):
         )
         nearby = []
         for ride in candidates:
+            if ride.payment_method == Ride.PaymentMethod.ONLINE and ride.payment_status != Ride.PaymentStatus.PAID:
+                continue
             distance = haversine_distance_km(
                 profile.current_latitude,
                 profile.current_longitude,
@@ -442,6 +444,8 @@ class AcceptRideView(APIView):
                 raise ValidationError({"ride": "You already have an active ride."})
             if ride.status not in ACCEPTABLE_RIDE_STATUSES or ride.driver_id is not None:
                 raise ValidationError({"ride": "This ride is no longer available."})
+            if ride.payment_method == Ride.PaymentMethod.ONLINE and ride.payment_status != Ride.PaymentStatus.PAID:
+                raise ValidationError({"payment": "Online payment must be verified before a driver can accept this ride."})
             if ride.vehicle_type != profile.vehicle_type:
                 raise ValidationError({"vehicle_type": "This ride requires a different vehicle type."})
 
