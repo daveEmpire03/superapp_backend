@@ -53,6 +53,8 @@ def notify_after_commit(*, user, title, message, notification_type, data):
 
 
 def notify_nearby_drivers_for_ride(ride):
+    if ride.payment_method == Ride.PaymentMethod.ONLINE and ride.payment_status != Ride.PaymentStatus.PAID:
+        return
     from .pricing import haversine_distance_km
     from apps.notifications.models import Notification
 
