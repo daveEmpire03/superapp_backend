@@ -2,7 +2,8 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 
 from rest_framework import generics
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,6 +40,20 @@ STAFF_ROLES = {
 }
 
 
+class RiderDeliveryPagination(PageNumberPagination):
+    """
+    Pagination for the rider's delivery feed.
+
+    - page_size 20: default rows per page (mobile-friendly).
+    - page_size_query_param: rider can request page_size=50 if desired.
+    - max_page_size 100: cap to prevent abuse.
+    """
+
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 def ensure_delivery_staff(user):
     if (
         not user.is_authenticated
@@ -49,12 +64,24 @@ def ensure_delivery_staff(user):
 
 
 def delivery_queryset():
+    """
+    Base queryset for all delivery views.
+
+    select_related joins FK lookups in a single SQL query.
+    prefetch_related batches reverse FK / M2M lookups.
+
+    Includes `order__items` because DeliverySerializer now exposes
+    the order's item snapshot to riders, and `status_history__changed_by`
+    because history rows include the changer's name.
+    """
+
     return Delivery.objects.select_related(
         "order",
         "order__user",
         "order__store",
         "rider",
     ).prefetch_related(
+        "order__items",
         "status_history",
         "status_history__changed_by",
     )
@@ -71,6 +98,7 @@ class CustomerDeliveryDetailView(generics.RetrieveAPIView):
 class RiderDeliveriesView(generics.ListAPIView):
     serializer_class = DeliverySerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = RiderDeliveryPagination
 
     def get_queryset(self):
         if self.request.user.role != User.Role.RIDER:
@@ -175,17 +203,11 @@ class StaffCreateDeliveryView(APIView):
         )
 
         if order.fulfilment_type != Order.Fulfilment.DELIVERY:
-            from rest_framework.exceptions import ValidationError
-
-            raise ValidationError(
-                {"order": "Pickup orders do not " "require delivery."}
-            )
+            raise ValidationError({"order": "Pickup orders do not require delivery."})
 
         if order.payment_status != Order.PaymentStatus.PAID:
-            from rest_framework.exceptions import ValidationError
-
             raise ValidationError(
-                {"order": "The order must be paid " "before delivery is created."}
+                {"order": "The order must be paid before delivery is created."}
             )
 
         delivery, created = Delivery.objects.get_or_create(

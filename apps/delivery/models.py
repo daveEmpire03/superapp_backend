@@ -80,6 +80,17 @@ class Delivery(TimeStampedModel):
         blank=True,
     )
 
+    payout_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text=(
+            "Amount owed to the rider for completing this delivery. "
+            "Set by the store when assigning the rider, or via a "
+            "future pricing rules engine."
+        ),
+    )
+
     class Meta:
         ordering = ["-created_at"]
 
