@@ -7,6 +7,8 @@ from core.views import health
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("health/", health, name="root_health"),
+    path("health", health),
     path("api/v1/health/", health, name="health"),
     path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/stores/", include("apps.stores.urls")),

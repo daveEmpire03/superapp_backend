@@ -28,8 +28,20 @@ class DeliveryStatusHistorySerializer(serializers.ModelSerializer):
     def get_changed_by_name(self, obj):
         if not obj.changed_by:
             return None
-
         return obj.changed_by.get_full_name() or obj.changed_by.username
+
+
+class DeliveryItemSerializer(serializers.Serializer):
+    """
+    Read-only snapshot of an order item at the time it was placed.
+    No FK exposure — the rider does not need product IDs.
+    """
+
+    product_name = serializers.CharField()
+    sku = serializers.CharField()
+    quantity = serializers.IntegerField()
+    unit_price = serializers.DecimalField(max_digits=12, decimal_places=2)
+    line_total = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 
 class DeliverySerializer(serializers.ModelSerializer):
@@ -55,11 +67,30 @@ class DeliverySerializer(serializers.ModelSerializer):
 
     customer_name = serializers.SerializerMethodField()
 
+    customer_phone = serializers.SerializerMethodField()
+
+    delivery_address = serializers.JSONField(
+        source="order.delivery_address_snapshot",
+        read_only=True,
+    )
+
+    items = DeliveryItemSerializer(
+        source="order.items",
+        many=True,
+        read_only=True,
+    )
+
     rider_name = serializers.SerializerMethodField()
 
     history = DeliveryStatusHistorySerializer(
         source="status_history",
         many=True,
+        read_only=True,
+    )
+
+    payout_amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         read_only=True,
     )
 
@@ -74,6 +105,9 @@ class DeliverySerializer(serializers.ModelSerializer):
             "store_id",
             "store_name",
             "customer_name",
+            "customer_phone",
+            "delivery_address",
+            "items",
             "rider",
             "rider_name",
             "status",
@@ -85,6 +119,7 @@ class DeliverySerializer(serializers.ModelSerializer):
             "cancelled_at",
             "delivery_note",
             "proof_note",
+            "payout_amount",
             "history",
             "created_at",
             "updated_at",
@@ -95,10 +130,14 @@ class DeliverySerializer(serializers.ModelSerializer):
     def get_customer_name(self, obj):
         return obj.order.user.get_full_name() or obj.order.user.username
 
+    def get_customer_phone(self, obj):
+        # Phone is optional on User — return "" rather than null so the
+        # Flutter side can treat it as "not available" without null checks.
+        return obj.order.user.phone or ""
+
     def get_rider_name(self, obj):
         if not obj.rider:
             return None
-
         return obj.rider.get_full_name() or obj.rider.username
 
 
@@ -112,12 +151,9 @@ class AssignRiderSerializer(serializers.Serializer):
                 role=User.Role.RIDER,
                 is_active=True,
             )
-
         except User.DoesNotExist:
             raise serializers.ValidationError("Active rider not found.")
-
         self.context["rider"] = rider
-
         return value
 
 
