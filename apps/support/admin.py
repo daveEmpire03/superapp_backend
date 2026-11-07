@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 
 from .models import (
     SupportMessage,
@@ -7,7 +8,7 @@ from .models import (
 )
 
 
-class SupportMessageInline(admin.TabularInline):
+class SupportMessageInline(TabularInline):
     model = SupportMessage
     extra = 0
 
@@ -28,7 +29,7 @@ class SupportMessageInline(admin.TabularInline):
     can_delete = False
 
 
-class SupportStatusHistoryInline(admin.TabularInline):
+class SupportStatusHistoryInline(TabularInline):
     model = SupportStatusHistory
     extra = 0
 
@@ -46,7 +47,7 @@ class SupportStatusHistoryInline(admin.TabularInline):
 
 
 @admin.register(SupportTicket)
-class SupportTicketAdmin(admin.ModelAdmin):
+class SupportTicketAdmin(ModelAdmin):
     list_display = (
         "subject",
         "user",
@@ -96,7 +97,7 @@ class SupportTicketAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupportMessage)
-class SupportMessageAdmin(admin.ModelAdmin):
+class SupportMessageAdmin(ModelAdmin):
     list_display = (
         "ticket",
         "author",
@@ -128,7 +129,7 @@ class SupportMessageAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupportStatusHistory)
-class SupportStatusHistoryAdmin(admin.ModelAdmin):
+class SupportStatusHistoryAdmin(ModelAdmin):
     list_display = (
         "ticket",
         "from_status",

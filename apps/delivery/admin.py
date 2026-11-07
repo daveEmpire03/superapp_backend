@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 
 from .models import (
     Delivery,
@@ -6,7 +7,7 @@ from .models import (
 )
 
 
-class DeliveryStatusHistoryInline(admin.TabularInline):
+class DeliveryStatusHistoryInline(TabularInline):
     model = DeliveryStatusHistory
     extra = 0
 
@@ -30,7 +31,7 @@ class DeliveryStatusHistoryInline(admin.TabularInline):
 
 
 @admin.register(Delivery)
-class DeliveryAdmin(admin.ModelAdmin):
+class DeliveryAdmin(ModelAdmin):
     list_display = (
         "order",
         "rider",
@@ -74,7 +75,7 @@ class DeliveryAdmin(admin.ModelAdmin):
 
 
 @admin.register(DeliveryStatusHistory)
-class DeliveryStatusHistoryAdmin(admin.ModelAdmin):
+class DeliveryStatusHistoryAdmin(ModelAdmin):
     list_display = (
         "delivery",
         "status",

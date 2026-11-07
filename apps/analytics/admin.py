@@ -1,10 +1,11 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import AnalyticsEvent
 
 
 @admin.register(AnalyticsEvent)
-class AnalyticsEventAdmin(admin.ModelAdmin):
+class AnalyticsEventAdmin(ModelAdmin):
     list_display = (
         "name",
         "user",

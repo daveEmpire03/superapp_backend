@@ -1,10 +1,11 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import LoyaltyEntry
 
 
 @admin.register(LoyaltyEntry)
-class LoyaltyEntryAdmin(admin.ModelAdmin):
+class LoyaltyEntryAdmin(ModelAdmin):
     list_display = (
         "user",
         "entry_type",

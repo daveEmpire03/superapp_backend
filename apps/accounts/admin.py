@@ -1,11 +1,18 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
+
+from unfold.admin import ModelAdmin
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 
 from .models import Address, User
 
 
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(UserAdmin, ModelAdmin):
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
     ordering = ("email",)
 
     list_display = (
@@ -117,7 +124,7 @@ class CustomUserAdmin(UserAdmin):
 
 
 @admin.register(Address)
-class AddressAdmin(admin.ModelAdmin):
+class AddressAdmin(ModelAdmin):
     list_display = (
         "recipient_name",
         "user",
@@ -151,3 +158,11 @@ class AddressAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class CustomGroupAdmin(GroupAdmin, ModelAdmin):
+    pass

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import (
     DeviceToken,
@@ -7,7 +8,7 @@ from .models import (
 
 
 @admin.register(DeviceToken)
-class DeviceTokenAdmin(admin.ModelAdmin):
+class DeviceTokenAdmin(ModelAdmin):
     list_display = (
         "user",
         "platform",
@@ -36,7 +37,7 @@ class DeviceTokenAdmin(admin.ModelAdmin):
 
 
 @admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
+class NotificationAdmin(ModelAdmin):
     list_display = (
         "user",
         "notification_type",

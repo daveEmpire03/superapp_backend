@@ -1,10 +1,11 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import Store, StoreStaffMembership
 
 
 @admin.register(Store)
-class StoreAdmin(admin.ModelAdmin):
+class StoreAdmin(ModelAdmin):
     list_display = (
         "name",
         "code",
@@ -46,7 +47,7 @@ class StoreAdmin(admin.ModelAdmin):
 
 
 @admin.register(StoreStaffMembership)
-class StoreStaffMembershipAdmin(admin.ModelAdmin):
+class StoreStaffMembershipAdmin(ModelAdmin):
     list_display = (
         "user",
         "store",

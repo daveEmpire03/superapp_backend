@@ -1,0 +1,52 @@
+/* Bokku Mart admin refinements layered over Django Unfold. */
+.bokku-dashboard{max-width:1500px;margin:0 auto;animation:bokku-enter .35s ease-out both}
+.bokku-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:8px 0 28px}
+.bokku-eyebrow{color:#0000cc;font-size:11px;font-weight:800;letter-spacing:.16em;margin:0 0 8px}
+.bokku-welcome h1{color:var(--color-font-default,#171717);font-size:clamp(25px,3vw,34px);font-weight:750;letter-spacing:-.04em;margin:0}
+.bokku-muted,.bokku-panel-heading p{color:var(--color-font-subtle,#737373);margin:7px 0 0;font-size:13px}
+.bokku-updated{display:flex;align-items:center;gap:9px;color:var(--color-font-subtle,#737373);font-size:12px;white-space:nowrap}
+.bokku-live-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 4px #16a34a20}
+.bokku-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+.bokku-kpi,.bokku-panel{background:var(--color-bg-elevated,#fff);border:1px solid var(--color-base-200,#e5e7eb);border-radius:13px;box-shadow:0 2px 8px #11182708}
+.bokku-kpi{padding:19px;min-height:130px;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.bokku-kpi:hover,.bokku-panel:hover{transform:translateY(-2px);box-shadow:0 9px 24px #1118270c;border-color:#0000ff40}
+.bokku-kpi-top{display:flex;justify-content:space-between;align-items:center;color:var(--color-font-subtle,#737373);font-size:12px;font-weight:650}
+.bokku-kpi-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#0000ff12;color:#0000cc;font-weight:800}
+.bokku-kpi strong{display:block;margin:14px 0 5px;color:var(--color-font-default,#171717);font-size:clamp(23px,2.3vw,29px);font-weight:750;letter-spacing:-.04em;overflow-wrap:anywhere}
+.bokku-kpi small{color:var(--color-font-subtle,#737373);font-size:11px}
+.bokku-kpi-primary{background:linear-gradient(135deg,#0808a8,#0000ff);border-color:#0000dd}
+.bokku-kpi-primary .bokku-kpi-top,.bokku-kpi-primary strong,.bokku-kpi-primary small{color:#fff}
+.bokku-kpi-primary .bokku-kpi-icon{background:#ffffff24;color:#fff}
+.bokku-kpi-warning .bokku-kpi-icon{background:#f59e0b20;color:#b45309}
+.bokku-dashboard-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(240px,1fr);gap:16px;margin-bottom:18px}
+.bokku-panel{padding:21px;min-width:0;transition:box-shadow .2s ease,border-color .2s ease}
+.bokku-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.bokku-panel-heading h2{color:var(--color-font-default,#171717);font-size:15px;font-weight:750;margin:0}
+.bokku-panel-heading p{font-size:11px}
+.bokku-period{border:1px solid var(--color-base-200,#e5e7eb);border-radius:6px;padding:5px 8px;color:var(--color-font-subtle,#737373);font-size:9px;font-weight:800;letter-spacing:.1em}
+.bokku-chart{height:190px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:12px;padding:5px 4px 0}
+.bokku-chart-column{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px;min-width:0}
+.bokku-chart-value,.bokku-chart-label{color:var(--color-font-subtle,#737373);font-size:10px}
+.bokku-chart-track{height:145px;width:min(100%,34px);display:flex;align-items:flex-end;overflow:hidden;border-radius:7px;background:var(--color-base-100,#f5f5f5)}
+.bokku-chart-bar{width:100%;min-height:0;border-radius:7px;background:linear-gradient(180deg,#5555ff,#0000cc);transition:height .55s cubic-bezier(.2,.8,.2,1)}
+.bokku-stock-number{color:#0000cc;font-size:52px;line-height:1;font-weight:800;letter-spacing:-.06em;margin:24px 0 10px}
+.bokku-stock-copy{color:var(--color-font-subtle,#737373);font-size:12px;line-height:1.7;max-width:260px}
+.bokku-link{color:#0000cc!important;font-size:12px;font-weight:750;text-decoration:none!important}
+.bokku-link span{display:inline-block;transition:transform .18s ease}
+.bokku-link:hover span{transform:translateX(4px)}
+.bokku-recent-panel{margin-bottom:18px}
+.bokku-table-wrap{overflow-x:auto}
+.bokku-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.bokku-table th{color:var(--color-font-subtle,#737373);font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;padding:11px 12px;border-bottom:1px solid var(--color-base-200,#e5e7eb)}
+.bokku-table td{color:var(--color-font-default,#171717);font-size:11px;padding:13px 12px;border-bottom:1px solid var(--color-base-200,#e5e7eb)}
+.bokku-table tbody tr:hover{background:var(--color-base-100,#f5f5f5)}
+.bokku-table td a{color:#0000cc;font-weight:750;text-decoration:none}
+.bokku-amount{font-weight:750}
+.bokku-status{display:inline-flex;border-radius:20px;padding:4px 8px;background:#0000ff12;color:#0000bb;font-size:10px;font-weight:700}
+.bokku-empty{color:var(--color-font-subtle,#737373)!important;text-align:center;padding:28px!important}
+.bokku-footer-note{display:flex;align-items:flex-start;gap:10px;padding:12px 2px;color:var(--color-font-subtle,#737373)}
+.bokku-footer-note span{color:#0000cc}.bokku-footer-note p{margin:0;font-size:11px;line-height:1.6}
+@keyframes bokku-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:850px){.bokku-dashboard-grid{grid-template-columns:1fr}.bokku-welcome{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.bokku-panel{padding:15px}.bokku-chart{gap:6px}.bokku-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.bokku-kpi{padding:14px}.bokku-kpi strong{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.bokku-dashboard,.bokku-kpi,.bokku-panel,.bokku-chart-bar,.bokku-link span{animation:none;transition:none}}

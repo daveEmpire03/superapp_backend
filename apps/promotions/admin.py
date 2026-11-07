@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from .models import (
     Promotion,
@@ -7,7 +8,7 @@ from .models import (
 
 
 @admin.register(Promotion)
-class PromotionAdmin(admin.ModelAdmin):
+class PromotionAdmin(ModelAdmin):
     list_display = (
         "code",
         "title",
@@ -47,7 +48,7 @@ class PromotionAdmin(admin.ModelAdmin):
 
 
 @admin.register(PromotionRedemption)
-class PromotionRedemptionAdmin(admin.ModelAdmin):
+class PromotionRedemptionAdmin(ModelAdmin):
     list_display = (
         "promotion",
         "user",

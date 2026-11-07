@@ -5,6 +5,8 @@ import os
 import dj_database_url
 from celery.schedules import crontab
 from dotenv import load_dotenv
+from django.templatetags.static import static
+from django.urls import reverse_lazy
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -381,6 +383,43 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "BORDER_RADIUS": "8px",
+    "STYLES": [lambda request: static("admin/css/bokku-dashboard.css")],
+    "DASHBOARD_CALLBACK": "core.admin_dashboard.dashboard_callback",
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {"title": "Overview", "separator": False, "items": [
+                {"title": "Dashboard", "icon": "dashboard", "link": reverse_lazy("admin:index")},
+            ]},
+            {"title": "Commerce", "separator": True, "items": [
+                {"title": "Orders", "icon": "shopping_bag", "link": reverse_lazy("admin:orders_order_changelist"), "permission": "orders.view_order"},
+                {"title": "Payments", "icon": "payments", "link": reverse_lazy("admin:payments_payment_changelist"), "permission": "payments.view_payment"},
+                {"title": "Carts", "icon": "shopping_cart", "link": reverse_lazy("admin:cart_cart_changelist"), "permission": "cart.view_cart"},
+                {"title": "Promotions", "icon": "sell", "link": reverse_lazy("admin:promotions_promotion_changelist"), "permission": "promotions.view_promotion"},
+            ]},
+            {"title": "Catalogue & stock", "separator": True, "items": [
+                {"title": "Products", "icon": "inventory_2", "link": reverse_lazy("admin:catalog_product_changelist"), "permission": "catalog.view_product"},
+                {"title": "Categories", "icon": "category", "link": reverse_lazy("admin:catalog_category_changelist"), "permission": "catalog.view_category"},
+                {"title": "Store inventory", "icon": "warehouse", "link": reverse_lazy("admin:inventory_storeinventory_changelist"), "permission": "inventory.view_storeinventory"},
+                {"title": "Stock movements", "icon": "swap_vert", "link": reverse_lazy("admin:inventory_inventorymovement_changelist"), "permission": "inventory.view_inventorymovement"},
+            ]},
+            {"title": "People & fulfilment", "separator": True, "items": [
+                {"title": "Customers & staff", "icon": "group", "link": reverse_lazy("admin:accounts_user_changelist"), "permission": "accounts.view_user"},
+                {"title": "Addresses", "icon": "location_on", "link": reverse_lazy("admin:accounts_address_changelist"), "permission": "accounts.view_address"},
+                {"title": "Stores", "icon": "store", "link": reverse_lazy("admin:stores_store_changelist"), "permission": "stores.view_store"},
+                {"title": "Store memberships", "icon": "badge", "link": reverse_lazy("admin:stores_storestaffmembership_changelist"), "permission": "stores.view_storestaffmembership"},
+                {"title": "Deliveries", "icon": "local_shipping", "link": reverse_lazy("admin:delivery_delivery_changelist"), "permission": "delivery.view_delivery"},
+            ]},
+            {"title": "Engagement & insights", "separator": True, "items": [
+                {"title": "Support tickets", "icon": "support_agent", "link": reverse_lazy("admin:support_supportticket_changelist"), "permission": "support.view_supportticket"},
+                {"title": "Reviews", "icon": "reviews", "link": reverse_lazy("admin:reviews_review_changelist"), "permission": "reviews.view_review"},
+                {"title": "Loyalty", "icon": "loyalty", "link": reverse_lazy("admin:loyalty_loyaltyentry_changelist"), "permission": "loyalty.view_loyaltyentry"},
+                {"title": "Analytics events", "icon": "query_stats", "link": reverse_lazy("admin:analytics_analyticsevent_changelist"), "permission": "analytics.view_analyticsevent"},
+                {"title": "Notifications", "icon": "notifications", "link": reverse_lazy("admin:notifications_notification_changelist"), "permission": "notifications.view_notification"},
+            ]},
+        ],
+    },
     "COLORS": {
         "primary": {
             "50": "#eff6ff",

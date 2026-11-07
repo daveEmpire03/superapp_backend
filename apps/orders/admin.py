@@ -1,21 +1,22 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import Order, OrderItem, OrderStatusHistory
 
 
-class OrderItemInline(admin.TabularInline):
+class OrderItemInline(TabularInline):
     model = OrderItem
     extra = 0
     readonly_fields = ("product_name", "sku", "unit_price", "line_total")
 
 
-class OrderStatusHistoryInline(admin.TabularInline):
+class OrderStatusHistoryInline(TabularInline):
     model = OrderStatusHistory
     extra = 0
     readonly_fields = ("created_at",)
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     list_display = (
         "reference",
         "user",
@@ -49,7 +50,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
+class OrderItemAdmin(ModelAdmin):
     list_display = (
         "product_name",
         "order",
@@ -64,7 +65,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(OrderStatusHistory)
-class OrderStatusHistoryAdmin(admin.ModelAdmin):
+class OrderStatusHistoryAdmin(ModelAdmin):
     list_display = ("order", "status", "note", "created_at")
     list_filter = ("status",)
     search_fields = ("order__reference", "note")

@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}Bokku Mart | Operations Overview{% endblock %}
+{% block branding %}{% include "unfold/helpers/site_branding.html" %}{% endblock %}
+
+{% block content %}
+<div class="bokku-dashboard">
+    <section class="bokku-welcome">
+        <div>
+            <p class="bokku-eyebrow">BOKKU MART OPERATIONS</p>
+            <h1>Business overview</h1>
+            <p class="bokku-muted">A live view of store operations and commerce activity.</p>
+        </div>
+        <div class="bokku-updated"><span class="bokku-live-dot"></span> Updated {{ dashboard_generated_at|date:"M j, Y · H:i" }}</div>
+    </section>
+
+    <section class="bokku-kpis" aria-label="Business key performance indicators">
+        {% if orders_count != None %}
+        <article class="bokku-kpi">
+            <div class="bokku-kpi-top"><span>All orders</span><span class="bokku-kpi-icon">▤</span></div>
+            <strong>{{ orders_count }}</strong><small>{{ pending_orders_count }} awaiting fulfilment</small>
+        </article>
+        <article class="bokku-kpi bokku-kpi-primary">
+            <div class="bokku-kpi-top"><span>Paid revenue</span><span class="bokku-kpi-icon">₦</span></div>
+            <strong>₦{{ paid_revenue|floatformat:2 }}</strong><small>₦{{ weekly_revenue|floatformat:2 }} in the last 7 days</small>
+        </article>
+        {% endif %}
+        {% if customers_count != None %}
+        <article class="bokku-kpi"><div class="bokku-kpi-top"><span>Customers</span><span class="bokku-kpi-icon">♙</span></div><strong>{{ customers_count }}</strong><small>Registered customer accounts</small></article>
+        {% endif %}
+        {% if active_products_count != None %}
+        <article class="bokku-kpi"><div class="bokku-kpi-top"><span>Active products</span><span class="bokku-kpi-icon">▦</span></div><strong>{{ active_products_count }}</strong><small>Active catalogue products</small></article>
+        {% endif %}
+        {% if low_stock_count != None %}
+        <article class="bokku-kpi {% if low_stock_count %}bokku-kpi-warning{% endif %}"><div class="bokku-kpi-top"><span>Low stock</span><span class="bokku-kpi-icon">!</span></div><strong>{{ low_stock_count }}</strong><small>Items at or below stock threshold</small></article>
+        {% endif %}
+    </section>
+
+    <section class="bokku-dashboard-grid">
+        {% if orders_count != None %}
+        <article class="bokku-panel">
+            <div class="bokku-panel-heading"><div><h2>Order activity</h2><p>Orders created over the last seven days</p></div><span class="bokku-period">7 DAYS</span></div>
+            <div class="bokku-chart" role="img" aria-label="Daily order counts for the last seven days">
+                {% for point in weekly_order_points %}
+                <div class="bokku-chart-column"><span class="bokku-chart-value">{{ point.orders }}</span><div class="bokku-chart-track"><div class="bokku-chart-bar" style="height: {{ point.bar_height }}%"></div></div><span class="bokku-chart-label">{{ point.label }}</span></div>
+                {% empty %}<p class="bokku-empty">No order activity yet.</p>{% endfor %}
+            </div>
+        </article>
+        {% endif %}
+        {% if low_stock_count != None %}
+        <article class="bokku-panel bokku-insight-panel">
+            <div class="bokku-panel-heading"><div><h2>Inventory attention</h2><p>Stock health across your stores</p></div></div>
+            <div class="bokku-stock-number">{{ low_stock_count }}</div>
+            <p class="bokku-stock-copy">items have reached or fallen below their configured stock threshold.</p>
+            <a class="bokku-link" href="{% url 'admin:inventory_storeinventory_changelist' %}?stock_health=low">Review low stock <span>→</span></a>
+        </article>
+        {% endif %}
+    </section>
+
+    {% if orders_count != None %}
+    <section class="bokku-panel bokku-recent-panel">
+        <div class="bokku-panel-heading"><div><h2>Recent orders</h2><p>Latest customer orders across your stores</p></div><a class="bokku-link" href="{% url 'admin:orders_order_changelist' %}">View all orders <span>→</span></a></div>
+        <div class="bokku-table-wrap">
+            <table class="bokku-table">
+                <thead><tr><th>Order</th><th>Customer</th><th>Store</th><th>Status</th><th>Payment</th><th>Total</th><th>Date</th></tr></thead>
+                <tbody>
+                {% for order in recent_orders %}
+                    <tr>
+                        <td><a href="{% url 'admin:orders_order_change' order.pk %}">{{ order.reference }}</a></td>
+                        <td>{{ order.user.email }}</td><td>{{ order.store.name }}</td>
+                        <td><span class="bokku-status">{{ order.get_status_display }}</span></td>
+                        <td>{{ order.get_payment_status_display }}</td>
+                        <td class="bokku-amount">₦{{ order.total|floatformat:2 }}</td>
+                        <td>{{ order.created_at|date:"M j, H:i" }}</td>
+                    </tr>
+                {% empty %}<tr><td colspan="7" class="bokku-empty">No orders have been placed yet.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+    <section class="bokku-footer-note"><span>✦</span><p>Figures are calculated from Bokku Mart records and respect Django view permissions. Revenue includes orders marked as paid.</p></section>
+</div>
+{% endblock %}
