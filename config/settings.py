@@ -44,6 +44,7 @@ ALLOWED_HOSTS = [
 # -----------------------------------------------------------------------------
 
 DJANGO_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -367,3 +368,32 @@ FIREBASE_CREDENTIALS_PATH = os.getenv(
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 X_FRAME_OPTIONS = "DENY"
+
+# -----------------------------------------------------------------------------
+# Django Unfold Admin
+# -----------------------------------------------------------------------------
+
+UNFOLD = {
+    "SITE_TITLE": "Bokku Mart Admin",
+    "SITE_HEADER": "Bokku Mart",
+    "SITE_SUBHEADER": "Management Dashboard",
+    "SITE_SYMBOL": "storefront",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "BORDER_RADIUS": "8px",
+    "COLORS": {
+        "primary": {
+            "50": "#eff6ff",
+            "100": "#dbeafe",
+            "200": "#bfdbfe",
+            "300": "#93c5fd",
+            "400": "#60a5fa",
+            "500": "#0000FF",
+            "600": "#0000cc",
+            "700": "#0000a3",
+            "800": "#000080",
+            "900": "#000066",
+            "950": "#000033",
+        },
+    },
+}
